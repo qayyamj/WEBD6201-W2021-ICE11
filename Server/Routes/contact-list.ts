@@ -4,22 +4,24 @@ import { DisplayAddPage, DisplayContactListPage, DisplayEditPage, ProcessAddPage
 const router = express.Router();
 export default router;
 
+import {AuthGuard} from '../Util/index';
+
 /* GET contact-list page - with /contact-list */
-router.get('/', DisplayContactListPage); 
+router.get('/', AuthGuard, DisplayContactListPage); 
 
 /* Display edit/:id page - with /edit/:id */
-router.get('/edit/:id', DisplayEditPage);
+router.get('/edit/:id', AuthGuard, DisplayEditPage);
 
 /* Process edit/:id page - with /edit/:id */
-router.post('/edit/:id', ProcessEditPage);
+router.post('/edit/:id', AuthGuard, ProcessEditPage);
 
 /* Display add page - with /add */
-router.get('/add', DisplayAddPage);
+router.get('/add', AuthGuard, DisplayAddPage);
 
 /* Process edit/:id page - with /edit/:id */
-router.post('/add', ProcessAddPage);
+router.post('/add', AuthGuard, ProcessAddPage);
 
 /* Process delete/:id page - with /delete/:id */
-router.get('/delete/:id', ProcessDeletePage);
+router.get('/delete/:id', AuthGuard, ProcessDeletePage);
 
 
