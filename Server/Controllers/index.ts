@@ -1,48 +1,57 @@
 import express, {Request, Response, NextFunction} from 'express';
-const router = express.Router();
 
-import mongoose from 'mongoose';
 import passport from 'passport';
 
 // create User Model Instance
 import User from '../Models/user';
 
+// Helper Function
+function UserDisplayName(req: Request): string
+{
+    if(req.user)
+    {
+        let user = req.user as UserDocument
+        return user.displayName.toString();
+    }
+    return '';
+}
+
 // Display Page Functions
 export function DisplayHomePage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Home', page: 'home', displayName: ''   });
+    return res.render('index', { title: 'Home', page: 'home', displayName: UserDisplayName(req)});
 }
 
 export function DisplayAboutPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'About', page: 'about', displayName: ''   });
+    return res.render('index', { title: 'About', page: 'about', displayName: UserDisplayName(req)});
 }
 
 export function DisplayServicesPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Our Services', page: 'services', displayName: ''   });
+    return res.render('index', { title: 'Our Services', page: 'services', displayName: UserDisplayName(req)});
 }
 
 export function DisplayProjectsPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Our Projects', page: 'projects', displayName: ''   });
+    return res.render('index', { title: 'Our Projects', page: 'projects', displayName: UserDisplayName(req)});
 }
 
 export function DisplayContactPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Contact Us', page: 'contact', displayName: ''   });
+    return res.render('index', { title: 'Contact Us', page: 'contact', displayName: UserDisplayName(req)});
 }
 
 export function DisplayLoginPage(req:Request, res:Response, next:NextFunction): void
 {
     if(!req.user)
     {
-        res.render('index', 
+        return res.render('index', 
         {   
             title: 'Login', 
             page: 'login',
             messages:  req.flash('loginMessage'),
-            displayName: req.user ? req.user.displayName: ''   
+            displayName: UserDisplayName(req)  
         });
     }
 
@@ -53,12 +62,12 @@ export function DisplayRegisterPage(req:Request, res:Response, next:NextFunction
 {
     if(!req.user)
     {
-        res.render('index', 
+        return res.render('index', 
         { 
             title: 'Register', 
             page: 'register',
             messages:  req.flash('registerMessage'), 
-            displayName: req.user ? req.user.displayName: ''   
+            displayName: UserDisplayName(req)  
         });
     }
 
@@ -99,15 +108,42 @@ export function ProcessLoginPage(req:Request, res:Response, next:NextFunction): 
 
 export function ProcessRegisterPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Home', page: 'home', displayName: ''   });
+    // instantiate a new user object
+    let newUser = new User
+    ({
+        username: req.body.username,
+        emailAddress: req.body.EmailAddress,
+        displayName: req.body.FirstName + " " + req.body.LastName
+    })
+
+    User.register(newUser, req.body.password, (err) =>
+    {
+        if(err)
+        {
+            console.error('Error: Inserting New User');
+            if(err.name == "UserExistsError")
+            {
+                req.flash('registerMessage', 'Registration Error');
+                console.error('Error: User Already Exists');
+            }
+            return res.redirect('/register');
+        }
+
+        // automatically login the user
+        return passport.authenticate('local')(req, res, () =>{
+            return res.redirect('/contact-list');
+        });
+    });
 }
 
 export function ProcessLogoutPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Home', page: 'home', displayName: ''   });
+    req.logout();
+    console.log('User logged Out');
+    res.redirect('/login');
 }
 
 export function ProcessContactPage(req:Request, res:Response, next:NextFunction): void
 {
-    res.render('index', { title: 'Home', page: 'home', displayName: ''   });
+    res.render('index', { title: 'Home', page: 'home', displayName: UserDisplayName(req)});
 }
